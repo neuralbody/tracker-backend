@@ -2,18 +2,20 @@ package com.example.tracker.controller;
 
 import com.example.tracker.dto.AuthRequest;
 import com.example.tracker.dto.AuthResponse;
-import com.example.tracker.model.User;
 import com.example.tracker.repository.UserRepository;
 import com.example.tracker.security.JwtUtils;
 import com.example.tracker.service.UserService;
+
+import lombok.extern.log4j.Log4j2;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@Log4j2
 public class AuthController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
@@ -32,16 +34,27 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AuthRequest req) {
-        User u = userService.register(req.getUsername(), req.getPassword());
-        return ResponseEntity.ok().build();
+        try {
+            userService.register(req.getUsername(), req.getPassword());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registration error");
+        }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest req) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
-        );
-        String token = jwtUtils.generateToken(req.getUsername());
-        return ResponseEntity.ok(AuthResponse.builder().token(token).build());
+    public ResponseEntity<?> login(@RequestBody AuthRequest req) {
+        try {
+            String token = userService.login(req);
+            ResponseEntity<?> response = ResponseEntity.ok(AuthResponse.builder().token(token).build());
+            this.log.info("User logged in: " + response);
+            return response;
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Authentication error");
+        }
     }
 }
