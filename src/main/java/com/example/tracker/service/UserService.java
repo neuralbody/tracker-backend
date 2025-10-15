@@ -39,12 +39,12 @@ public class UserService {
         Optional<User> opt = userRepository.findByUsername(request.getUsername());
         this.log.info("Attempting login for user: " + request.getUsername());
         if (opt.isEmpty()) {
-            throw new IllegalArgumentException("Invalid username or password");
+            throw new IllegalArgumentException("No user found with username: " + request.getUsername());
         }
         User user = opt.get();
         this.log.info("User found: " + user.getUsername());
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Invalid username or password");
+            throw new IllegalArgumentException("Invalid password");
         }
         // create token with subject = username
         return jwtUtils.generateToken(user.getUsername());

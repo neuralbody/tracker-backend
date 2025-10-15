@@ -6,6 +6,7 @@ import com.example.tracker.repository.UserRepository;
 import com.example.tracker.security.JwtUtils;
 import com.example.tracker.service.UserService;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.springframework.http.HttpStatus;
@@ -16,21 +17,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @Log4j2
+@RequiredArgsConstructor
 public class AuthController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
 
-    public AuthController(UserService userService,
-                          AuthenticationManager authenticationManager,
-                          JwtUtils jwtUtils,
-                          UserRepository userRepository) {
-        this.userService = userService;
-        this.authenticationManager = authenticationManager;
-        this.jwtUtils = jwtUtils;
-        this.userRepository = userRepository;
-    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AuthRequest req) {
@@ -52,7 +45,7 @@ public class AuthController {
             this.log.info("User logged in: " + response);
             return response;
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Authentication error");
         }
