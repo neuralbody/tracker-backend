@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.tracker.dto.AuthRequest;
 import com.example.tracker.model.User;
@@ -25,6 +26,7 @@ public class UserService {
 		this.jwtUtils = jwtUtils;
 	}
 	
+	@Transactional
 	public User register(String username, String rawPassword) {
         if (userRepository.existsByUsername(username)) throw new RuntimeException("Username already taken");
         String hashed = passwordEncoder.encode(rawPassword);
@@ -35,6 +37,7 @@ public class UserService {
         return userRepository.save(u);
     }
 	
+	@Transactional(readOnly = true)
 	public String login(AuthRequest request) {
         Optional<User> opt = userRepository.findByUsername(request.getUsername());
         this.log.info("Attempting login for user: " + request.getUsername());

@@ -3,6 +3,7 @@ package com.example.tracker.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.tracker.model.Recipe;
 import com.example.tracker.repository.RecipeRepository;
@@ -17,11 +18,13 @@ public class RecipeService {
 	
 	private final RecipeRepository recipeRepo;
 
+	@Transactional(readOnly = true)
 	public List<Recipe> getAllRecipes() {
 		this.log.info("Fetching all recipes");
         return recipeRepo.findAll();
     }
 
+	@Transactional
     public Recipe createRecipe(Recipe recipe) {
         return recipeRepo.save(recipe);
     }

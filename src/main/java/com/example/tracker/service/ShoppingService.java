@@ -3,6 +3,7 @@ package com.example.tracker.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.tracker.model.Ingredient;
 import com.example.tracker.model.Recipe;
@@ -23,19 +24,23 @@ public class ShoppingService {
     private final RecipeRepository recipeRepo;
     private final IngredientRepository ingredientRepo;
 
+    @Transactional(readOnly = true)
     public List<ShoppingList> getAllLists() {
     	this.log.info("Fetching all shopping lists");
         return listRepo.findAll();
     }
 
+    @Transactional(readOnly = true)
     public ShoppingList getList(Long id) {
         return listRepo.findById(id).orElseThrow();
     }
 
+    @Transactional
     public ShoppingList createList(ShoppingList list) {
         return listRepo.save(list);
     }
 
+    @Transactional
     public ShoppingList updateList(Long id, ShoppingList updated) {
         ShoppingList existing = getList(id);
         existing.setTitle(updated.getTitle());
@@ -44,16 +49,19 @@ public class ShoppingService {
         return listRepo.save(existing);
     }
 
+    @Transactional
     public void deleteList(Long id) {
         listRepo.deleteById(id);
     }
 
+    @Transactional
     public ShoppingList addIngredient(Long listId, Ingredient ingredient) {
         ShoppingList list = getList(listId);
         list.getIngredients().add(ingredientRepo.save(ingredient));
         return listRepo.save(list);
     }
 
+    @Transactional
     public ShoppingList addRecipe(Long listId, Long recipeId) {
         ShoppingList list = getList(listId);
         Recipe recipe = recipeRepo.findById(recipeId).orElseThrow();
